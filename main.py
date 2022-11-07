@@ -1,21 +1,23 @@
 import pygame
+from random import randint
 from bird import Bird
 from tube import Tube
 
 
 class App:
+    """
+    TODO: все размеры спрайтов считать от размеров экрана!
+    Размеры экрана учитывают масштаб интерфейса в 10 Винде
+    2560 * 0.8 = 2048
+    1440 * 0.8 = 1152
+    """
     def __init__(self, fullscreen=False) -> None:
-        """
-        Размеры экрана учитывают масштаб интерфейса в 10 Винде
-        2560 * 0.8 = 2048
-        1440 * 0.8 = 1152
-        """
         pygame.init()
         screen_sizes = pygame.display.get_desktop_sizes()
         if fullscreen:
             self.screen_width = screen_sizes[0][0]
             self.screen_height = screen_sizes[0][1]
-            self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
+            self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN) 
         else:
             self.screen_width = int(screen_sizes[0][0] * 0.8)  # нужно место для интерфейса окна (заголовка, кнопок, ...) 
             self.screen_height = int(screen_sizes[0][1]  * 0.8)
@@ -33,7 +35,6 @@ class App:
         self.is_running = True
         self.score = 0
         MAKE_TUBE = pygame.event.custom_type()  # MAKE_TUBE:int !
-        JUMP = pygame.event.custom_type()  # JUMP :int !
         pygame.time.set_timer(MAKE_TUBE, 1000)
 
         while self.is_running:
@@ -50,21 +51,15 @@ class App:
                 if event.type == pygame.QUIT:
                     self.is_running = False
                 if event.type == pygame.KEYDOWN:  # эту клавишу нельзя зажать
-                    if not JUMP in events:
-                        jmp = pygame.event.Event(JUMP)
-                        pygame.event.post(jmp)
+                    if event.key == pygame.K_ESCAPE:
+                        self.is_running = False
+                    else:
+                        self.bird.jump(20)
                 if event.type == MAKE_TUBE:
-                    tube = Tube(self.screen_rect, 100, 1000, (0, 255, 0))
-                    self.all_sprites.add(tube)
-                if event.type == JUMP:
-                    self.bird.jump(20)
-
+                    self.make_tube()
+                
             # собираем нажатия клавиш
             keys = pygame.key.get_pressed()
-    
-            # выход на Esc
-            if keys[pygame.K_ESCAPE]:
-                self.is_running = False
     
             # эту клавишу можно зажимать
             if keys[pygame.K_q]:
@@ -81,6 +76,15 @@ class App:
             self.clock.tick(self.fps)
 
         pygame.quit()
+
+    def make_tube(self):
+        tube = Tube(
+            midright=self.screen_rect.midright,
+            centery=self.screen_rect.centery + randint(-150, 150),
+            width=10,
+            height=500
+        )
+        self.all_sprites.add(tube)
 
 
 if __name__ == "__main__":
